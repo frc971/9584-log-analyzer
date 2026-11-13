@@ -128,7 +128,7 @@ field-center) and see which jumps they would have prevented and how much good da
 
 - `Vision/Accepted`, `Vision/RejectReasons` (one per estimate, lined up with `Vision/Poses`): what
   the robot's filter ACTUALLY did. Reasons: `NO_TAGS`, `OFF_FIELD`, `HEADING_MISMATCH`, `SPINNING`,
-  `TOO_FAR`, `AMBIGUOUS`, `LARGE_CORRECTION`. Do not guess acceptance from today's rules when these
+  `TOO_FAR`, `AMBIGUOUS`, `LARGE_CORRECTION`, `FIELD_CENTER` (the mttd bad solve: exactly field center facing 0 deg). Do not guess acceptance from today's rules when these
   are present.
 - `Vision/ResidualMeters`, `ResidualDegrees`: how far each estimate was from the pose it would correct.
 - `Drive/OdometryPose` (wheels + gyro only) and `Drive/VisionCorrectionMeters`: separates "odometry
