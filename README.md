@@ -67,6 +67,12 @@ python tools/vision_replay.py logs/<file> --max-heading-error 15 --max-correctio
 cd 9584-log-analyzer
 gemini
 ```
+**The first time,** Gemini asks whether to trust this folder. Say yes. Gemini only works with the
+files and commands in a folder you trust, and this repo is the folder it needs. Trust this folder
+only, not your whole home folder. (If you instead see *"Gemini CLI is not running in a trusted
+directory"*, you ran a one-off `gemini -p ...` command before trusting the folder: run plain
+`gemini` here once and say yes.)
+
 Then ask, for example:
 - `/report logs/akit_..._q68.wpilog` full report, explained
 - `/module logs/akit_..._q68.wpilog` which swerve module is misbehaving
