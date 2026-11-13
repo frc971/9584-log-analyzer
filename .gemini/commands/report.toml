@@ -1,10 +1,4 @@
 description = "Full report on a robot log: runs every check, saves history, explains the results"
 prompt = """
-Analyze the robot log {{args}} following GEMINI.md.
-
-1. Run: python tools/match_report.py {{args}} --record   (use python3 if python is not found)
-2. Read history/findings.md and check whether any problem is a repeat.
-3. For each PROBLEM and WATCH item, compare with earlier logs using python tools/history.py <metric>.
-4. Answer in the GEMINI.md answer format: summary, evidence (signal names + times), what to check on
-   the robot in order, optional code suggestions. Keep it short and plain for a student.
+Do the "report" task in AGENT_TASKS.md for the robot log {{args}}, following GEMINI.md.
 """

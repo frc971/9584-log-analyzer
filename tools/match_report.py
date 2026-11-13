@@ -23,6 +23,7 @@ from wpilog import Log  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_ROBOT = os.path.join(REPO, "robot", "2026.toml")
+SKELETON_ROBOT = os.path.join(REPO, "robot", "2027.toml")
 METRICS_CSV = os.path.join(REPO, "history", "metrics.csv")
 
 ICON = {"problem": "PROBLEM", "watch": "WATCH", "ok": "ok"}
@@ -33,9 +34,18 @@ def load_robot(path):
         return tomllib.load(f)
 
 
-def run(log_path, robot_path=DEFAULT_ROBOT, only=None):
+def pick_robot(log):
+    """The robot file for a log when none was given: robot code built from 9584-skeleton-robot logs
+    its vision filter's decisions (Vision/RejectReasons); the 2026 robot did not."""
+    return SKELETON_ROBOT if log.has("/RealOutputs/Vision/RejectReasons") else DEFAULT_ROBOT
+
+
+def run(log_path, robot_path=None, only=None):
+    log = Log(log_path)
+    robot_path = robot_path or pick_robot(log)
     robot = load_robot(robot_path)
-    ctx = Context(Log(log_path), robot)
+    ctx = Context(log, robot)
+    ctx.robot_path = robot_path
     results = []
     for key, fn in ALL:
         if only and key not in only:
@@ -51,7 +61,8 @@ def run(log_path, robot_path=DEFAULT_ROBOT, only=None):
 
 
 def to_markdown(log_path, ctx, results):
-    out = [f"# Report: {os.path.basename(log_path)}", ""]
+    out = [f"# Report: {os.path.basename(log_path)}",
+           f"Robot file: {os.path.relpath(ctx.robot_path, REPO)}", ""]
     summary = [(key, sev, text) for key, res in results for sev, text in res.findings if sev != "ok"]
     out.append("## Summary")
     if summary:
@@ -101,7 +112,8 @@ def record(log_path, results):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("logs", nargs="+", help=".wpilog file(s)")
-    ap.add_argument("--robot", default=DEFAULT_ROBOT, help="robot description (default robot/2026.toml)")
+    ap.add_argument("--robot", help="robot description (default: robot/2027.toml for logs from "
+                    "skeleton-based robot code, robot/2026.toml otherwise)")
     ap.add_argument("--only", help="comma-separated checks: " + ",".join(k for k, _ in ALL))
     ap.add_argument("--record", action="store_true", help="save this log's numbers to history/metrics.csv")
     ap.add_argument("--json", action="store_true", help="print metrics and findings as JSON")

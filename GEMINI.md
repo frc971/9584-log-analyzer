@@ -33,7 +33,8 @@ first time you use them, and always say what to physically check on the robot.
 | `tools/wpilog.py` | Log reader (no dependencies). Use it for any custom digging, see below |
 | `tools/checks/*.py` | The individual checks. Each has a docstring explaining the method |
 | `robot/2026.toml` | The 2026 robot: signal names, CAN IDs, current limits, thresholds |
-| `robot/2027.toml` | Robots built from `9584-skeleton-robot` (same file as that repo's `docs/analyzer-robot.toml`). Pass `--robot robot/2027.toml` |
+| `robot/2027.toml` | Robots built from `9584-skeleton-robot` (same file as that repo's `docs/analyzer-robot.toml`) |
+| `AGENT_TASKS.md` | The standard tasks (report, module, vision, compare). When a student asks for one by name, or uses `/report` etc., follow it from there |
 | `history/metrics.csv` | One row of numbers per analyzed log |
 | `history/findings.md` | Dated diagnoses, fixes, and outcomes |
 | `tests/` | `python -m unittest discover tests` must pass after changing a check. `test_recorded_vision.py` builds synthetic logs (`wpilog_writer.py`) and always runs; `test_known_findings.py` needs the mttd logs in `logs/` |
@@ -43,9 +44,12 @@ The robot code for 2026 is the sibling repo `../9584-wcp-code-2026` (branch `com
 starts from `../9584-skeleton-robot`, whose `docs/logging.md` lists every signal it writes and which
 ones this repo depends on.
 
-**Which robot file?** If the log has `/RealOutputs/Vision/RejectReasons` (check with
-`log.names("RejectReasons")`), it came from skeleton-based code: use `robot/2027.toml`. Otherwise
-use `robot/2026.toml` (the default).
+**Which robot file?** The scripts pick it from the log: `robot/2027.toml` if the log has
+`/RealOutputs/Vision/RejectReasons` (skeleton-based robot code), `robot/2026.toml` otherwise. The
+report's second line says which was used. Pass `--robot` only to override.
+
+These instructions apply whichever agent you are (Gemini CLI, Claude Code, Codex): `CLAUDE.md` and
+`AGENTS.md` point here.
 
 ## Custom digging
 

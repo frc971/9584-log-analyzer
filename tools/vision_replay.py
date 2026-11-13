@@ -32,22 +32,23 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from checks.common import Context, pct, wrap_deg  # noqa: E402
 from checks.vision import estimates, has_recorded_decisions  # noqa: E402
-from match_report import DEFAULT_ROBOT, load_robot  # noqa: E402
+from match_report import load_robot, pick_robot  # noqa: E402
 from wpilog import Log  # noqa: E402
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("log")
-    ap.add_argument("--robot", default=DEFAULT_ROBOT)
+    ap.add_argument("--robot", help="robot description (default: picked from the log, as in match_report.py)")
     ap.add_argument("--max-heading-error", type=float)
     ap.add_argument("--max-correction", type=float)
     ap.add_argument("--min-tags", type=int)
     ap.add_argument("--max-dist", type=float)
     ap.add_argument("--reject-field-center", action="store_true")
     a = ap.parse_args()
-    robot = load_robot(a.robot)
-    ctx = Context(Log(a.log), robot)
+    log = Log(a.log)
+    robot = load_robot(a.robot or pick_robot(log))
+    ctx = Context(log, robot)
     vcfg = robot["vision"]
     pose = ctx.log.out("Drive/Pose")
     est = [e for e in estimates(ctx) if e["loops"] > 0]

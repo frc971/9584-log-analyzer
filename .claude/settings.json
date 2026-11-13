@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 tools/match_report.py *)",
+      "Bash(python3 tools/history.py *)",
+      "Bash(python3 tools/vision_replay.py *)",
+      "Bash(python tools/match_report.py *)",
+      "Bash(python tools/history.py *)",
+      "Bash(python tools/vision_replay.py *)"
+    ]
+  }
+}
