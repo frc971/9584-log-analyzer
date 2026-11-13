@@ -60,15 +60,22 @@ allow" for the session). Tell it what you physically saw on the robot; that help
 
 ## New season
 
-Copy `robot/2026.toml` to `robot/2027.toml`, update CAN IDs, limits and signal names, and pass
+Robot code built from [9584-skeleton-robot](https://github.com/frc971/9584-skeleton-robot) already
+has a robot file: `robot/2027.toml` (a copy of that repo's `docs/analyzer-robot.toml`). Keep the two
+in step, update CAN IDs, limits and camera names when the robot changes, and pass
 `--robot robot/2027.toml` (or change `DEFAULT_ROBOT` in `tools/match_report.py`). The drivetrain,
-power, connection, and vision checks carry over; mechanism checks (`tools/checks/mechanisms.py`)
-need updating for the new game.
+power, connection, vision and camera checks carry over; mechanism checks
+(`tools/checks/mechanisms.py`) need updating for the new game.
+
+Skeleton-based robots also log what their vision filter decided about every estimate, so the vision
+report shows what the robot actually rejected and why, instead of guessing.
 
 ## Changing a check
 
-Each check is a small file in `tools/checks/`. After changing one, run the tests, which make sure
-the checks still catch the problems found at the 2026 mttd event (needs those logs in `logs/`):
+Each check is a small file in `tools/checks/`. After changing one, run the tests:
 ```
 python -m unittest discover tests
 ```
+`test_known_findings.py` makes sure the checks still catch the problems found at the 2026 mttd event
+(needs those logs in `logs/`; tests for missing logs are skipped). `test_recorded_vision.py` builds
+small synthetic logs and always runs.

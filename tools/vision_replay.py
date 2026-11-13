@@ -13,9 +13,14 @@ Rules (all optional, combine freely):
   --max-dist M              reject estimates whose average tag distance is more than M meters
   --reject-field-center     reject the known bad solve: exactly field center, facing 0 deg
 
-Limits: the log has the fused pose (odometry already corrected by vision), not raw odometry, so
-"correction" is measured against the fused pose just before the estimate arrived. And the log does
-not record which estimates the robot actually accepted (see GEMINI.md: add that next season).
+"Correction" is measured against the fused pose just before the estimate arrived (what the estimate
+would have corrected).
+
+Logs from the 2026 robot do not record which estimates the robot accepted, so this can only say
+what the rules WOULD do. Logs from the skeleton robot (9584-skeleton-robot) do record it
+(Vision/Accepted, Vision/RejectReasons): then this also prints what the robot ACTUALLY did and
+where the rules here disagree with it, which is the evidence for changing a threshold in the robot's
+VisionFilter.
 """
 
 import argparse
@@ -26,7 +31,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from checks.common import Context, pct, wrap_deg  # noqa: E402
-from checks.vision import estimates  # noqa: E402
+from checks.vision import estimates, has_recorded_decisions  # noqa: E402
 from match_report import DEFAULT_ROBOT, load_robot  # noqa: E402
 from wpilog import Log  # noqa: E402
 
@@ -84,6 +89,21 @@ def main():
     print(f"Rejected estimates that agreed with the pose anyway (< 0.3 m): {len(small)}  "
           f"<- good data these rules would throw away")
 
+    recorded = has_recorded_decisions(est)
+    if recorded:
+        robot_rej = [e for e in est if e["accepted"] is False]
+        reasons = {}
+        for e in robot_rej:
+            reasons[e["reason"]] = reasons.get(e["reason"], 0) + 1
+        print(f"\nWhat the robot actually did (recorded): rejected {len(robot_rej)} of {len(est)}"
+              + (" (" + ", ".join(f"{k} {v}" for k, v in sorted(reasons.items(), key=lambda kv: -kv[1])) + ")"
+                 if reasons else ""))
+        only_rules = [e for e in est if e["why"] and e["accepted"]]
+        only_robot = [e for e in est if not e["why"] and e["accepted"] is False]
+        print(f"  Rejected by these rules but accepted by the robot: {len(only_rules)}")
+        print(f"  Rejected by the robot but not by these rules:      {len(only_robot)}"
+              + (" (" + ", ".join(sorted({e['reason'] for e in only_robot})) + ")" if only_robot else ""))
+
     # Pose jumps and the estimate that was being applied when each happened.
     jumps = []
     seq = pose.window(0, ctx.log.end_time)
@@ -104,9 +124,11 @@ def main():
             continue
         blocked = bool(e["why"])
         prevented += blocked
+        robot = "" if not recorded else (
+            "; robot accepted it" if e["accepted"] else f"; robot rejected it ({e['reason']})")
         print(f"  {t:7.1f} s  {d:4.1f} m  estimate: {e['tags']} tag(s) at {e['dist'] or 0:.1f} m, heading off gyro "
               f"{abs(wrap_deg(e['heading_deg'] - (e['gyro_deg'] or e['heading_deg']))):.0f} deg -> "
-              + ("REJECTED (" + ", ".join(e["why"]) + ")" if blocked else "accepted"))
+              + ("REJECTED (" + ", ".join(e["why"]) + ")" if blocked else "accepted") + robot)
     if jumps:
         print(f"These rules would have blocked the estimate behind {prevented} of {len(jumps)} jumps.")
 

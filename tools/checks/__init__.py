@@ -1,4 +1,4 @@
-from . import comms, devices, drivetrain, loop, mechanisms, power, timeline, vision
+from . import cameras, comms, devices, drivetrain, loop, mechanisms, power, timeline, vision
 
 # Report order. Each entry is (key, function); the key is used by --only.
 ALL = [
@@ -10,5 +10,6 @@ ALL = [
     ("intake", mechanisms.check_intake),
     ("shooting", mechanisms.check_shooting),
     ("vision", vision.check),
+    ("cameras", cameras.check),
     ("loop", loop.check),
 ]

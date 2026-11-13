@@ -2,10 +2,15 @@ description = "Vision and localization: bad estimates, pose jumps, and testing f
 prompt = """
 Analyze vision and localization in the robot log {{args}}, following GEMINI.md (Vision section).
 
-1. Run: python tools/match_report.py {{args}} --only timeline,vision,comms
+0. Pick the robot file: if the log has /RealOutputs/Vision/RejectReasons it came from skeleton-based
+   robot code, so add --robot robot/2027.toml to every command below; otherwise use the default.
+1. Run: python tools/match_report.py {{args}} --only timeline,vision,cameras,comms
 2. Run: python tools/vision_replay.py {{args}} --max-heading-error 15
    then try stricter rules (e.g. --max-correction 1.0, --min-tags 2) and compare how many pose jumps
-   each would prevent versus how much agreeing data it throws away.
+   each would prevent versus how much agreeing data it throws away. If the log records the robot's
+   own decisions, the replay also shows where each rule disagrees with what the robot actually did:
+   use that, not a guess, when recommending a change to the robot's VisionFilter.
 3. Explain where the pose jumps came from (vision vs odometry), whether they hit auto or shooting,
-   and which filter rule you would recommend, with the numbers.
+   whether any camera stopped sending frames, and which filter rule you would recommend, with the
+   numbers. If Limelight Rewind video was saved, say which match time to scrub to.
 """

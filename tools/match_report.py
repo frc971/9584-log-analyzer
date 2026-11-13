@@ -63,6 +63,8 @@ def to_markdown(log_path, ctx, results):
         out.append("- No problems found.")
     out.append("")
     for key, res in results:
+        if not res.lines and not res.findings:
+            continue  # a check with nothing to say for this log (e.g. no camera signals in a 2026 log)
         out.append(f"## {res.title}")
         out.extend(res.lines)
         for sev, text in res.findings:

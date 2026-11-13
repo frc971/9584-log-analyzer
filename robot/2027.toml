@@ -1,0 +1,60 @@
+# Robot description for the 9584-log-analyzer, matching THIS skeleton's logging.
+#
+# Copy to ../9584-log-analyzer/robot/2027.toml and pass `--robot robot/2027.toml`.
+# Update when the robot changes: CAN IDs from generated/TunerConstants.java, limits from
+# subsystems/drive/SwerveConfigOverrides.java, camera names from Constants.VisionConstants,
+# field size from the season's AprilTag layout. Add [intake]/[feeder]/[shooter] sections once the
+# season's mechanisms log their signals; the analyzer skips mechanism checks that have no section.
+
+season = 2027
+robot_code_repo = "9584-skeleton-robot"
+
+[drivetrain]
+# CTRE Phoenix 6 swerve from Tuner X. Values below are still the 2026 robot's until the 2027
+# drivetrain is generated.
+modules = ["FrontLeft", "FrontRight", "BackLeft", "BackRight"]
+module_prefix = "/RealOutputs/Drive/Modules/"
+module_positions = [[0.273, 0.273], [0.273, -0.273], [-0.273, 0.273], [-0.273, -0.273]]
+max_speed_mps = 4.98          # TunerConstants.kSpeedAt12Volts
+drive_supply_limit_a = 35     # SwerveConfigOverrides.kDriveSupplyLimitAmps
+drive_slip_current_a = 70     # SwerveConfigOverrides.kDriveSlipCurrentAmps (= drive stator limit)
+steer_stator_limit_a = 40     # SwerveConfigOverrides.kSteerStatorLimitAmps
+steer_supply_limit_a = 20
+
+[drivetrain.can_ids]
+FrontLeft  = { drive = 1, steer = 2, encoder = 21 }
+FrontRight = { drive = 3, steer = 4, encoder = 20 }
+BackLeft   = { drive = 5, steer = 6, encoder = 22 }
+BackRight  = { drive = 7, steer = 8, encoder = 23 }
+pigeon = 26
+
+[power]
+brownout_v = 6.0              # Robot.java sets 6.1; the RIO reports 6.0
+
+[vision]
+cameras = ["limelight-front", "limelight-back", "limelight-left"]   # Constants.VisionConstants
+poses = "Vision/Poses"
+tag_counts = "Vision/TagCounts"
+tag_dists = "Vision/AvgTagDists"
+std_devs_xy = "Vision/StdDevsXY"
+gyro_yaw = "Vision/GyroYawDegrees"
+max_heading_error_deg = 15     # VisionFilter.Config.defaults maxHeadingErrorDegrees
+field_length_m = 16.54         # season AprilTag layout (2026 values until the 2027 field is out)
+field_width_m = 8.07
+# New in this skeleton, for checks not yet written in the analyzer (docs/logging.md):
+accepted = "Vision/Accepted"
+reject_reasons = "Vision/RejectReasons"
+residual_m = "Vision/ResidualMeters"
+estimate_cameras = "Vision/EstimateCameras"
+odometry_pose = "Drive/OdometryPose"
+
+[thresholds]
+# Carried from 2026 (tuned on the mttd event logs). Re-check on this robot's first event.
+battery_warn_v = 7.0
+battery_resistance_warn_ohm = 0.025
+loop_overrun_ms = 20
+pose_jump_m = 0.5
+steer_error_warn_deg = 10
+steer_limit_warn_pct = 40
+magnet_warn_s = 5
+heading_hold_wrong_way_warn_pct = 30

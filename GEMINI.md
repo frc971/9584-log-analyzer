@@ -32,13 +32,20 @@ first time you use them, and always say what to physically check on the robot.
 | `tools/vision_replay.py` | Test vision filter rules against a recorded log |
 | `tools/wpilog.py` | Log reader (no dependencies). Use it for any custom digging, see below |
 | `tools/checks/*.py` | The individual checks. Each has a docstring explaining the method |
-| `robot/2026.toml` | This season's robot: signal names, CAN IDs, current limits, thresholds |
+| `robot/2026.toml` | The 2026 robot: signal names, CAN IDs, current limits, thresholds |
+| `robot/2027.toml` | Robots built from `9584-skeleton-robot` (same file as that repo's `docs/analyzer-robot.toml`). Pass `--robot robot/2027.toml` |
 | `history/metrics.csv` | One row of numbers per analyzed log |
 | `history/findings.md` | Dated diagnoses, fixes, and outcomes |
-| `tests/` | `python -m unittest discover tests` must pass after changing a check |
+| `tests/` | `python -m unittest discover tests` must pass after changing a check. `test_recorded_vision.py` builds synthetic logs (`wpilog_writer.py`) and always runs; `test_known_findings.py` needs the mttd logs in `logs/` |
 
 The robot code for 2026 is the sibling repo `../9584-wcp-code-2026` (branch `competition`). Its
-`docs/drivetrain-log-guide.md` explains every drivetrain signal for students.
+`docs/drivetrain-log-guide.md` explains every drivetrain signal for students. Next season's robot
+starts from `../9584-skeleton-robot`, whose `docs/logging.md` lists every signal it writes and which
+ones this repo depends on.
+
+**Which robot file?** If the log has `/RealOutputs/Vision/RejectReasons` (check with
+`log.names("RejectReasons")`), it came from skeleton-based code: use `robot/2027.toml`. Otherwise
+use `robot/2026.toml` (the default).
 
 ## Custom digging
 
@@ -114,11 +121,34 @@ Known patterns:
 Use `tools/vision_replay.py` to test rules (heading error, max correction, min tags, max distance,
 field-center) and see which jumps they would have prevented and how much good data they discard.
 
-Logging to add in next season's robot code (tell the programmers):
-- Whether each estimate was accepted, and the reason if rejected.
-- Vision minus odometry residual when each estimate is applied.
-- Raw odometry pose (before vision), so drift can be separated from vision corrections.
-- Limelight frame rate, temperature, and pipeline.
+### Logs from skeleton-based robot code (2027 on)
+
+`9584-skeleton-robot` records everything the list above used to ask for, and the vision check and
+`vision_replay.py` use it automatically when it is in the log:
+
+- `Vision/Accepted`, `Vision/RejectReasons` (one per estimate, lined up with `Vision/Poses`): what
+  the robot's filter ACTUALLY did. Reasons: `NO_TAGS`, `OFF_FIELD`, `HEADING_MISMATCH`, `SPINNING`,
+  `TOO_FAR`, `AMBIGUOUS`, `LARGE_CORRECTION`. Do not guess acceptance from today's rules when these
+  are present.
+- `Vision/ResidualMeters`, `ResidualDegrees`: how far each estimate was from the pose it would correct.
+- `Drive/OdometryPose` (wheels + gyro only) and `Drive/VisionCorrectionMeters`: separates "odometry
+  drifted" from "vision moved the pose". The report splits pose jumps into vision and odometry jumps.
+- `Vision/Cameras/<name>/Connected`, `Fps`, `CpuTempC`: the **cameras** check. "Connected" means the
+  camera's frame counter was still going up, not just that it was on the network.
+- `Vision/GyroDriftDegrees`: gyro vs the heading MegaTag1 solves from tags, while disabled.
+  MegaTag2 trusts the gyro, so a drifted gyro skews every position and no filter catches it.
+- `Vision/Rewind/SaveCount`: Limelight 4 Rewind video saves (every FMS match end, and the driver's
+  Start button). The report gives the times; the video is on each camera (web UI, Rewind tab), so a
+  student can WATCH what the camera saw at a pose jump.
+
+If the report says **"The robot's filter ACCEPTED ... off the gyro"**, that is a robot-code bug, not
+tuning: the filter has a rule against exactly that.
+
+**Reading those arrays yourself:** AdvantageKit only writes a value when it changes, so two loops
+with the same `["ACCEPTED"]` are ONE entry. Never count entries in `Vision/RejectReasons`; for each
+time `Vision/Poses` changed, read the other arrays with `.at(t)` (as `checks/vision.py` does), or
+use the running totals `Vision/ReasonCounts/<REASON>`. The same applies to any steady value (a
+camera at a constant 60 fps is written once): sample with `.at(t)` on `ctx.enabled_grid()`.
 
 ## Pitfalls when reading these logs
 
