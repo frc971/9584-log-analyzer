@@ -12,11 +12,33 @@ intake jammed, why it lost connection. Works with or without AI.
 1. **Python 3.11 or newer.** Check with `python --version` (Mac/Linux: `python3 --version`).
    Install from [python.org](https://www.python.org/downloads/) if needed. No extra packages needed.
 2. **Get this repo** (clone it, or download and unzip).
-3. **For the AI part, Gemini CLI** (needs [Node.js](https://nodejs.org/) 20+):
+
+Steps 1 and 2 are all you need to run the scripts. The rest is only for the AI part.
+
+3. **Node.js 20 or newer.** Gemini CLI runs on Node.js, and **Node is not installed on Macs or
+   Windows laptops by default**. Check with `node --version`. If that says "command not found" (Mac)
+   or "not recognized" (Windows), or shows a version below 20:
+   - Mac or Windows: download the **LTS** installer from [nodejs.org](https://nodejs.org/) and run
+     it. (Mac users who already use Homebrew can run `brew install node` instead.)
+   - Close the terminal and open a new one, then check `node --version` again.
+
+   Installing Node needs admin rights. On a school-managed laptop that may be blocked: ask the IT
+   department, or use the scripts without AI.
+4. **Gemini CLI.** `npm` comes with Node.js, so this works once step 3 does:
    ```
    npm install -g @google/gemini-cli
    ```
-4. **The team's Gemini API key**, from a mentor. Set it as an environment variable, never in a file
+   Check with `gemini --version`.
+   - **Windows:** if `gemini` fails with *"running scripts is disabled on this system"*, that is a
+     PowerShell security setting, not a problem with Gemini. Run this once, then open a new
+     terminal:
+     ```
+     Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+     ```
+   - **Mac:** if `npm install -g` fails with a permission error (EACCES), do not use `sudo`. Either
+     install Node with Homebrew (`brew install node`) and try again, or follow npm's
+     [fix for EACCES errors](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally).
+5. **The team's Gemini API key**, from a mentor. Set it as an environment variable, never in a file
    in this repo:
    - Windows (PowerShell, once): `setx GEMINI_API_KEY "the-key"` then open a new terminal
    - Mac/Linux: add `export GEMINI_API_KEY="the-key"` to `~/.zshrc` or `~/.bashrc`
