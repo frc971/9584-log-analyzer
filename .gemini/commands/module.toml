@@ -1,0 +1,12 @@
+description = "Swerve deep-dive: which module (if any) is misbehaving, and why"
+prompt = """
+Investigate the swerve modules in the robot log {{args}}, following GEMINI.md.
+
+1. Run: python tools/match_report.py {{args}} --only devices,drivetrain,power
+2. Compare the four modules side by side (speed/target, drive and steer current, steering error,
+   time on current limits, magnet health, connection drops). The one that differs is the suspect;
+   if all four struggle, look at limits, battery, or the floor.
+3. For unwanted rotation, check whether drift is one-directional (single module) or both ways.
+4. Use tools/wpilog.py for any extra measurement you need. Tell the student exactly what to check on
+   the robot and in AdvantageScope (signal names + times).
+"""

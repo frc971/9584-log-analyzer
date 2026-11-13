@@ -1,0 +1,11 @@
+description = "Vision and localization: bad estimates, pose jumps, and testing filter rules"
+prompt = """
+Analyze vision and localization in the robot log {{args}}, following GEMINI.md (Vision section).
+
+1. Run: python tools/match_report.py {{args}} --only timeline,vision,comms
+2. Run: python tools/vision_replay.py {{args}} --max-heading-error 15
+   then try stricter rules (e.g. --max-correction 1.0, --min-tags 2) and compare how many pose jumps
+   each would prevent versus how much agreeing data it throws away.
+3. Explain where the pose jumps came from (vision vs odometry), whether they hit auto or shooting,
+   and which filter rule you would recommend, with the numbers.
+"""

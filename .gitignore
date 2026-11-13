@@ -1,0 +1,6 @@
+logs/
+!logs/README.md
+__pycache__/
+*.pyc
+.env
+.DS_Store

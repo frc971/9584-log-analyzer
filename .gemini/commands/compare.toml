@@ -1,0 +1,10 @@
+description = "Compare a log's numbers with previous logs to spot things getting worse"
+prompt = """
+Compare the robot log {{args}} with earlier logs, following GEMINI.md.
+
+1. Make sure it is recorded: python tools/match_report.py {{args}} --record --json
+2. Use python tools/history.py with metric names (battery_path, magnet_not_green, steer_limit,
+   comms_disables, not_responding, pose_jumps, roller_stalled, intake_short, heading_held) to find
+   metrics that changed noticeably versus earlier logs.
+3. Report trends: what got worse, what got better, and what that suggests. Show the numbers.
+"""

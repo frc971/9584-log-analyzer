@@ -1,0 +1,76 @@
+# Robot description for the 2026 season (REBUILT) robot, code repo 9584-wcp-code-2026.
+# The checks read signal names, CAN IDs and limits from here, so a new season only needs a new
+# file like this one. Copy it to robot/2027.toml and edit; pass --robot robot/2027.toml or change
+# DEFAULT_ROBOT in tools/match_report.py.
+
+season = 2026
+robot_code_repo = "9584-wcp-code-2026"
+
+[drivetrain]
+# CTRE Phoenix 6 swerve, Kraken X60 drive and steer, CANcoders, on the CANivore named "Turret".
+modules = ["FrontLeft", "FrontRight", "BackLeft", "BackRight"]
+module_prefix = "/RealOutputs/Drive/Modules/"
+# [x, y] of each module from robot center, meters, same order as modules.
+module_positions = [[0.273, 0.273], [0.273, -0.273], [-0.273, 0.273], [-0.273, -0.273]]
+max_speed_mps = 4.98
+drive_supply_limit_a = 35     # SwerveConfigOverrides.kDriveSupplyLimitAmps
+drive_slip_current_a = 70     # SwerveConfigOverrides.kDriveSlipCurrentAmps (= drive stator limit)
+steer_stator_limit_a = 40     # SwerveConfigOverrides.kSteerStatorLimitAmps
+steer_supply_limit_a = 20
+
+[drivetrain.can_ids]
+FrontLeft  = { drive = 1, steer = 2, encoder = 21 }
+FrontRight = { drive = 3, steer = 4, encoder = 20 }
+BackLeft   = { drive = 5, steer = 6, encoder = 22 }
+BackRight  = { drive = 7, steer = 8, encoder = 23 }
+pigeon = 26
+
+[power]
+brownout_v = 6.0              # RobotController.setBrownoutVoltage in Robot.java (6.1 set; RIO reports 6.0)
+
+[intake]
+pivot_angle = "Intake/PivotAngleDegrees"
+pivot_target = "Intake/PivotTargetDegrees"
+pivot_stator = "Intake/PivotStatorCurrent"
+roller_rpm = "Intake/RollerRPM"
+roller_stator = "Intake/RollerStatorCurrent"
+roller_setting = "Intake/RollerSpeedSetting"   # "INTAKE" / "OUTTAKE" / "DEFAULT"
+angle_setpoint = "Intake/IntakeAngleSetpointDegrees"
+deployed_min_target_deg = 100  # a target above this means "deployed"
+pivot_stator_limit_a = 35
+roller_stator_limit_a = 50
+
+[feeder]
+supply = "Feeder/SupplyCurrent"
+supply_limit_a = 25
+feed_start_text = "feeding fuel to shooter"   # console line printed when a feed starts
+feed_stop_text = "stopping feed"
+
+[shooter]
+supply = ["Shooter/LeftSupplyCurrent", "Shooter/MiddleSupplyCurrent", "Shooter/RightSupplyCurrent"]
+supply_limit_a = 45
+
+[vision]
+cameras = ["limelight-shooter"]
+poses = "Vision/Poses"
+tag_counts = "Vision/TagCounts"
+tag_dists = "Vision/AvgTagDists"
+std_devs_xy = "Vision/StdDevsXY"
+gyro_yaw = "Vision/GyroYawDegrees"
+max_heading_error_deg = 15     # CommandSwerveDrivetrain.kMaxVisionHeadingErrorDegrees
+field_length_m = 16.54
+field_width_m = 8.07
+
+[thresholds]
+# Where a number turns into a warning in the report. Tuned on the 2026 mttd event logs.
+battery_warn_v = 7.0
+battery_resistance_warn_ohm = 0.025
+loop_overrun_ms = 20
+pose_jump_m = 0.5
+steer_error_warn_deg = 10      # typical (median) steering error while driving
+steer_limit_warn_pct = 40      # % of driving time a steer motor sits on its stator limit
+magnet_warn_s = 5              # seconds a CANcoder magnet is not green
+roller_stall_rpm = 2000
+roller_stall_warn_pct = 30
+intake_short_deg = 5           # deployed intake this far below target = obstructed
+heading_hold_wrong_way_warn_pct = 30
