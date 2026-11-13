@@ -136,16 +136,20 @@ def check(ctx):
     r.lines.append(f"- Fused pose jumps > {th.get('pose_jump_m', 0.5)} m in one loop: {len(jumps)}"
                    + (f" (largest {max(d for _, d in jumps):.1f} m at {max(jumps, key=lambda j: j[1])[0]:.1f} s)" if jumps else ""))
 
-    center = sum(e["loops"] for e in en if abs(e["x"] - cfg["field_length_m"] / 2) < 0.05
-                 and abs(e["y"] - cfg["field_width_m"] / 2) < 0.05)
-    r.metric("vision_field_center_loops", center)
+    def at_center(e):
+        return abs(e["x"] - cfg["field_length_m"] / 2) < 0.05 and abs(e["y"] - cfg["field_width_m"] / 2) < 0.05
+
+    center = r.metric("vision_field_center_loops", sum(e["loops"] for e in en if at_center(e)))
+    # The summary's "N of them" must be a subset of nbad: count only center solves that also
+    # disagreed with the gyro (a center solve can match the gyro when the robot faces ~0 deg).
+    center_bad = sum(e["loops"] for e in en if at_center(e) and bad_heading(e))
 
     if recorded:
         _recorded_decisions(ctx, r, en, bad_heading, off_field, jumps)
     else:
         if nbad > 5:
             r.watch(f"For {nbad} robot loops the camera's estimate disagreed with the gyro heading"
-                    + (f" ({center} of them the known bad solve: exactly field center, facing 0 deg)" if center else "")
+                    + (f" ({center_bad} of them the known bad solve: exactly field center, facing 0 deg)" if center_bad else "")
                     + ". The robot's heading filter (added 11-07) rejects these; before it, they caused 5 m pose jumps.")
         if len(jumps) > 5:
             r.watch(f"{len(jumps)} pose jumps. Wrong pose -> wrong hub distance -> wrong shot RPM/hood; in auto, "
