@@ -29,6 +29,7 @@ first time you use them, and always say what to physically check on the robot.
 |---|---|
 | `tools/match_report.py` | One-page report. `--record` saves metrics, `--only drivetrain,vision` runs some checks, `--json` for machine-readable output |
 | `tools/history.py` | Compare metrics across logs from `history/metrics.csv` |
+| `analyze.py`, `Analyze latest log.cmd/.command` | Short commands for students working without AI (newest log by default). They only call the scripts above: agents should call those scripts directly |
 | `tools/vision_replay.py` | Test vision filter rules against a recorded log |
 | `tools/wpilog.py` | Log reader (no dependencies). Use it for any custom digging, see below |
 | `tools/checks/*.py` | The individual checks. Each has a docstring explaining the method |

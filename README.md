@@ -78,12 +78,32 @@ Add the match to the name, e.g. `akit_26-11-08_18-23-38_mttd_q68.wpilog`.
 
 ## Use it without AI
 
+**Easiest: double-click** `Analyze latest log.cmd` (Windows) or `Analyze latest log.command` (Mac).
+It runs the full report on the newest log in `logs/` and saves its numbers. (Mac, first time only:
+right-click the file > **Open**, then **Open** again, to get past the "unidentified developer"
+warning. If it says it has no permission to run, the repo was downloaded as a zip: run
+`chmod +x "Analyze latest log.command"` once in a terminal here, or clone the repo instead.)
+
+**From a terminal in this folder** (Mac/Linux: `python3` instead of `python`):
+```
+python analyze.py                  # full report on the newest log, and save its numbers
+python analyze.py q68              # the log with "q68" in its name
+python analyze.py drive            # just the drivetrain part (newest log)
+python analyze.py vision           # vision report + replay of the robot's vision filter
+python analyze.py trend magnet     # a number across every saved log
+python analyze.py list             # the logs, newest first, and which are saved
+```
+The first line always says which log it used: check it. "Newest" goes by the time AdvantageKit puts
+in the file name, not the file's date (copying logs resets file dates). Parts you can ask for:
+timeline, power, comms, devices, drivetrain (or drive), intake, shooting, vision, cameras, loop.
+`python analyze.py help` shows all of this.
+
+The **Summary** at the top lists every PROBLEM and WATCH item. Only the full report saves numbers
+(to `history/metrics.csv`) so later matches can be compared; a single part does not.
+
+`analyze.py` just runs the scripts in `tools/`, which you can also run directly:
 ```
 python tools/match_report.py logs/akit_26-11-08_18-23-38_mttd_q68.wpilog --record
-```
-The **Summary** at the top lists every PROBLEM and WATCH item. `--record` saves the numbers to
-`history/metrics.csv` so later matches can be compared:
-```
 python tools/history.py magnet battery_path      # these numbers across every recorded log
 python tools/vision_replay.py logs/<file> --max-heading-error 15 --max-correction 1.0
 ```
