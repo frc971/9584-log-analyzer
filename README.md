@@ -72,9 +72,27 @@ Steps 1 and 2 are all you need to run the scripts. The rest is only for the AI p
 
 ## Getting a log
 
-Logs are written to the USB stick in the roboRIO. Either pull the stick and copy the `.wpilog`, or
-in AdvantageScope use **File > Download Logs** (robot address `10.95.84.2`). Copy it into `logs/`.
-Add the match to the name, e.g. `akit_26-11-08_18-23-38_mttd_q68.wpilog`.
+Logs are written to the USB stick in the roboRIO. The stick does not have to come out: with the
+robot on, connect a laptop and run
+
+```
+python analyze.py fetch --as mttd_q68 --report
+```
+
+It copies the newest log off the robot into `logs/`, adds `_mttd_q68` to its name, and runs the
+full report (leave out `--as` and `--report` if you only want the copy). Connect by **Ethernet
+cable** (fastest, and what to use in the pits), a **USB cable**, or the **robot's Wi-Fi** in the
+shop. Wi-Fi to the robot is not allowed at events. If it asks for a password, press Enter. Running
+it again after more driving replaces the shorter copy. `fetch` needs `ssh`/`scp`, which Mac, Linux
+and Windows 10/11 include.
+
+Other ways: AdvantageScope's **File > Download Logs** (robot address `10.95.84.2`), or pull the
+stick. Copy the log into `logs/` and add the match to the name, e.g.
+`akit_26-11-08_18-23-38_mttd_q68.wpilog`.
+
+2027 (SystemCore): `python analyze.py fetch --systemcore` uses the address and login from
+WPILib's 2027 docs (`robot.local`, password `systemcore`). It has not been tried on a real
+SystemCore yet.
 
 ## Use it without AI
 

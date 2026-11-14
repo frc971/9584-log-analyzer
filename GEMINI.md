@@ -81,7 +81,8 @@ auto/teleop split and sampling helpers, build a `checks.common.Context(log, robo
 - Teleop drive: field-centric; after 0.25 s with no rotation input it holds the current heading
   (`Drive/Input/State` = `DRIVING_WITH_LOCKED_HEADING`).
 - Logs are written only to the roboRIO's USB stick. Pull them with AdvantageScope (File > Download
-  Logs, 10.95.84.2) or `scp lvuser@10.95.84.2:/media/sda1/<file> logs/`.
+  Logs, 10.95.84.2), `python analyze.py fetch` (newest log, over Ethernet/USB/Wi-Fi), or
+  `scp lvuser@10.95.84.2:/media/sda1/<file> logs/`.
 
 ## Diagnosis playbook (learned at mttd, Nov 2026)
 
