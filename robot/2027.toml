@@ -56,5 +56,6 @@ loop_overrun_ms = 20
 pose_jump_m = 0.5
 steer_error_warn_deg = 10
 steer_limit_warn_pct = 40
+drive_supply_limit_warn_pct = 65   # % of driving time 3+ drive motors sit on their supply limit
 magnet_warn_s = 5
 heading_hold_wrong_way_warn_pct = 30

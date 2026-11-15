@@ -50,6 +50,11 @@ class Q8DeadDriveMotor(unittest.TestCase):
         _, f = report("_mttd_q8.wpilog")
         self.assertTrue(has_finding(f, "drivetrain", "problem", "BackLeft reaches much less"))
 
+    def test_drive_supply_limit(self):
+        # The other three drive motors were capped at 20 A ~79% of the time: the second cause of slowness.
+        _, f = report("_mttd_q8.wpilog")
+        self.assertTrue(has_finding(f, "drivetrain", "problem", "supply current limit"))
+
     def test_auto_cut_short(self):
         m, f = report("_mttd_q8.wpilog")
         self.assertLess(m["timeline.auto_enabled_s"], 5)
@@ -73,6 +78,11 @@ class Q38RadioAndIntake(unittest.TestCase):
         m, f = report("_mttd_q38.wpilog")
         self.assertGreaterEqual(m["comms.ds_long_losses"], 1)
         self.assertTrue(has_finding(f, "comms", "problem", "Lost the Driver Station"))
+
+    def test_no_supply_limit_problem_after_raise(self):
+        # 35 A limit: modules ~35% on limit while pushing. Must not be called a problem.
+        _, f = report("_mttd_q38.wpilog")
+        self.assertFalse(has_finding(f, "drivetrain", "problem", "supply current limit"))
 
     def test_intake_obstructed_and_jammed(self):
         m, _ = report("_mttd_q38.wpilog")

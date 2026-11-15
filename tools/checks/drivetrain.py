@@ -87,6 +87,19 @@ def check(ctx):
     if (steer_med[worst] or 0) > th.get("steer_error_warn_deg", 10):
         r.watch(f"Wheels lag their target angles (typical error up to {steer_med[worst]:.0f} deg, worst {worst}). "
                 f"Lagging wheels make the robot curve/rotate on its own.")
+    # Drive motors capped by their supply limit: the limit, not a motor, is what makes the robot slow.
+    # Needs 3 or more modules, so one dead module (which reads ~0%) does not hide it.
+    sup_warn = th.get("drive_supply_limit_warn_pct", 65)
+    capped = {m: r.metrics.get(f"{m}.drive_supply_limit_pct") or 0 for m in dt["modules"]}
+    capped = {m: x for m, x in capped.items() if x > sup_warn}
+    if len(capped) >= 3:
+        amps = [r.metrics.get(f"{m}.drive_supply_p50_a") or 0 for m in capped]
+        r.problem(f"Drive motors sat on their supply current limit most of the driving time "
+                  f"({', '.join(f'{m} {x:.0f}%' for m, x in capped.items())}; typical supply current "
+                  f"{pct(amps, 0.5):.0f} A). The limit is capping speed and pushing power: typical speed "
+                  f"{pct(v, .5):.2f} m/s against a {dt['max_speed_mps']} m/s setting. Check the drive supply "
+                  f"limit in SwerveConfigOverrides.java, and the battery minimum before raising it. "
+                  f"(q8 at mttd: 20 A limit; raised to 35 A, typical speed 1.4 -> 2.3 m/s.)")
     limit_pcts = [r.metrics.get(f"{m}.steer_limit_pct", 0) for m in dt["modules"]]
     if max(limit_pcts) > th.get("steer_limit_warn_pct", 40):
         r.watch(f"Steer motors sat on their {dt['steer_stator_limit_a']} A limit up to {max(limit_pcts):.0f}% of "
