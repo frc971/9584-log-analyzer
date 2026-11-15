@@ -9,6 +9,7 @@
     python analyze.py list             the logs in logs/, newest first
     python analyze.py fetch            copy the newest log off the robot into logs/
     python analyze.py fetch --as q68 --report   ...add "_q68" to its name, then run the full report
+    python analyze.py ask q57 "Why did it brown out?"   ask a local AI model (no internet; LOCAL_AI.md)
 
 Getting the log off the robot (fetch): plug a laptop into the robot with an Ethernet cable (fastest;
 use this in the pits) or a USB cable, or connect to the robot's Wi-Fi in the shop. Wi-Fi to the
@@ -48,7 +49,7 @@ METRICS_CSV = os.path.join(REPO, "history", "metrics.csv")
 SECTIONS = ["timeline", "power", "comms", "devices", "drivetrain", "intake", "shooting",
             "vision", "cameras", "loop"]
 ALIASES = {"drive": "drivetrain", "swerve": "drivetrain", "battery": "power", "camera": "cameras"}
-COMMANDS = {"report", "trend", "list", "fetch", "help"} | set(SECTIONS) | set(ALIASES)
+COMMANDS = {"report", "trend", "list", "fetch", "ask", "help"} | set(SECTIONS) | set(ALIASES)
 
 TEAM = 9584
 # How to reach each kind of robot controller, in the order fetch tries the addresses.
@@ -353,6 +354,22 @@ def main(argv=None):
             print("Which number? For example: python analyze.py trend magnet")
             print("Every name you can use:\n")
         return _run("history.py", *argv)
+
+    if cmd == "ask":
+        # ask [log] [question] [--model ...]: two words or more means the first one picks the log.
+        words, flags, it = [], [], iter(argv)
+        for a in it:
+            if a in ("--model", "--url", "--robot", "--max-tools"):
+                flags += [a, next(it, "")]
+            elif a.startswith("-"):
+                flags.append(a)
+            else:
+                words.append(a)
+        selector = words[0] if len(words) >= 2 else None
+        question = words[1:] if len(words) >= 2 else words
+        path, note = find_log(selector)
+        _announce(path, note)
+        return _run("local_ai.py", path, *([" ".join(question)] if question else []), *flags)
 
     selector, extra = _split(argv)
     path, note = find_log(selector)

@@ -9,6 +9,7 @@
 import argparse
 import csv
 import os
+import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,12 +17,20 @@ METRICS_CSV = os.path.join(REPO, "history", "metrics.csv")
 
 
 def _label(log_name):
-    """akit_26-11-08_18-23-38_mttd_q68.wpilog -> 'mttd_q68'; unnamed logs -> '11-08 18:23'."""
+    """A short column name with no spaces, unique per log.
+
+    akit_26-11-08_18-23-38_mttd_q68.wpilog -> 'mttd_q68' (a named match or practice)
+    akit_26-11-07_19-56-18_mttd.wpilog     -> '11-07_19:56_mttd' (event only: add the time, or every
+                                              unnamed log at an event would be called 'mttd')
+    akit_26-11-01_22-53-11.wpilog          -> '11-01_22:53'
+    """
     parts = log_name.replace("akit_", "").replace(".wpilog", "").split("_")
-    if len(parts) > 2:
-        return "_".join(parts[2:])
-    date = parts[0][3:] if len(parts[0]) == 8 else parts[0]
-    return f"{date} {parts[1][:5].replace('-', ':')}" if len(parts) > 1 else parts[0]
+    if len(parts) < 2 or not re.fullmatch(r"\d\d-\d\d-\d\d", parts[0]):
+        return "_".join(parts)
+    rest = parts[2:]
+    if any(re.fullmatch(r"[qp]\d+", p) for p in rest):
+        return "_".join(rest)
+    return "_".join([parts[0][3:], parts[1][:5].replace("-", ":")] + rest)
 
 
 def main():
@@ -55,7 +64,7 @@ def main():
             try:
                 v = f"{float(v):.3g}"
             except ValueError:
-                pass
+                v = v or "-"  # never a blank cell: blanks shift the columns for anyone reading by eye
             cells.append(str(v).rjust(width + 2))
         print(c[:47].ljust(48) + "".join(cells))
 

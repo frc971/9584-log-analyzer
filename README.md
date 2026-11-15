@@ -128,6 +128,8 @@ python tools/vision_replay.py logs/<file> --max-heading-error 15 --max-correctio
 
 ## Use it with AI
 
+**No internet, or no AI account?** A mentor's Mac can run a model locally: `python analyze.py ask q68 "Why did it spin?"`. Setup and limits: [LOCAL_AI.md](LOCAL_AI.md).
+
 Start your agent inside this folder:
 ```
 cd 9584-log-analyzer
