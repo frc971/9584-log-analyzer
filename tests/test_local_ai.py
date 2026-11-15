@@ -4,6 +4,7 @@
 
 import json
 import os
+import re
 import sys
 import unittest
 
@@ -105,6 +106,45 @@ class Loop(unittest.TestCase):
         self.assertNotIn("Call read_findings", server.bodies[0]["messages"][0]["content"])
 
 
+class Blind(unittest.TestCase):
+    """--blind: an old log must look new. Nothing learned at the event may reach the model."""
+
+    def test_report_notes_removed(self):
+        text = ("- **PROBLEM** (drivetrain) Drive motors sat on their supply current limit. Check the drive supply "
+                "limit. (q8 at mttd: 20 A limit; raised to 35 A, typical speed 1.4 -> 2.3 m/s.)\n"
+                "- **WATCH** (vision) The robot's heading filter (added 11-07) rejects these; before it, they "
+                "caused 5 m pose jumps.\n"
+                "- **PROBLEM** (loop) Find the slow part; at mttd it was a config read blocking on a dead CAN device.")
+        out = local_ai.blind_text(text)
+        for leak in ("mttd", "35 A", "11-07", "before it"):
+            self.assertNotIn(leak, out)
+        self.assertIn("Check the drive supply limit.", out)   # the finding itself stays
+
+    def test_prompt_has_no_event_history(self):
+        p = local_ai.blind_text(local_ai.build_prompt(), local_ai._BLIND_PROMPT)
+        self.assertIsNone(re.search(r"mttd|\b[qp]\d+\b|11-0\d|drive supply 35|0\.75 s", p))
+        self.assertIn("Diagnosis playbook", p)
+
+    def test_history_only_earlier_logs(self):
+        cmd = local_ai.tool_command("history", {"patterns": ["x"]}, "logs/akit_26-11-07_17-32-08_mttd_q8.wpilog",
+                                    blind=True)
+        self.assertEqual(cmd[-2:], ["--before", "akit_26-11-07_17-32-08_mttd_q8.wpilog"])
+        self.assertNotIn("--before", local_ai.tool_command("history", {}, "l"))
+
+    def test_no_findings_tool_and_tool_output_filtered(self):
+        seen = []
+        old = local_ai.subprocess.run
+        local_ai.subprocess.run = lambda cmd, **k: seen.append(cmd) or type(
+            "P", (), {"stdout": "Slow. (q8 at mttd: 20 A limit.)", "stderr": ""})()
+        try:
+            server = FakeServer(reply(calls=[("run_report", {})]), reply("answer"))
+            local_ai.ask("logs/x.wpilog", "q", "m", "u", None, send=server, blind=True)
+        finally:
+            local_ai.subprocess.run = old
+        self.assertNotIn("read_findings", [t["function"]["name"] for t in server.bodies[0]["tools"]])
+        self.assertEqual(server.bodies[1]["messages"][-1]["content"], "Slow.")
+
+
 class AnalyzeAsk(unittest.TestCase):
     def setUp(self):
         self.calls = []
@@ -119,8 +159,8 @@ class AnalyzeAsk(unittest.TestCase):
         self.assertEqual(self.calls, [("local_ai.py", ("logs/q57.wpilog", "why brownout?", "--model", "gemma"))])
 
     def test_question_only_uses_newest(self):
-        analyze.main(["ask", "Why slow?"])
-        self.assertEqual(self.calls, [("local_ai.py", ("logs/None.wpilog", "Why slow?"))])
+        analyze.main(["ask", "Why slow?", "--blind"])
+        self.assertEqual(self.calls, [("local_ai.py", ("logs/None.wpilog", "Why slow?", "--blind"))])
 
 
 if __name__ == "__main__":

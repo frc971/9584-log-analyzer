@@ -56,5 +56,18 @@ class Table(unittest.TestCase):
         self.assertEqual(row.split()[1:], ["0.0216", "-", "0.0244"])
 
 
+class Before(unittest.TestCase):
+    ROWS = [{"log": n} for n in ("akit_26-11-07_17-32-08_mttd_q8.wpilog", "akit_26-11-07_19-20-49_mttd_q19.wpilog",
+                                 "akit_26-11-07_15-48-33_mttd.wpilog", "akit_b58e9cd3e12cb379.wpilog")]
+
+    def test_only_earlier_logs(self):
+        self.assertEqual([r["log"] for r in history.before(self.ROWS, "q19")],
+                         ["akit_26-11-07_17-32-08_mttd_q8.wpilog", "akit_26-11-07_15-48-33_mttd.wpilog"])
+
+    def test_full_name_not_yet_recorded(self):
+        kept = history.before(self.ROWS, "akit_26-11-07_17-00-00_new.wpilog")
+        self.assertEqual([r["log"] for r in kept], ["akit_26-11-07_15-48-33_mttd.wpilog"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -104,7 +104,7 @@ TOOLS = [
 ]
 
 
-def tool_command(name, args, log, robot=None):
+def tool_command(name, args, log, robot=None, blind=False):
     """The script a tool call runs, as an argument list, or None for an unknown tool."""
     py = [sys.executable]
     rob = ["--robot", robot] if robot else []
@@ -116,7 +116,8 @@ def tool_command(name, args, log, robot=None):
         if isinstance(pats, str):
             pats = pats.split()
         logs = str(args.get("logs") or "").strip()
-        return py + [os.path.join("tools", "history.py"), *[str(p) for p in pats]] + (["--logs", logs] if logs else [])
+        return (py + [os.path.join("tools", "history.py"), *[str(p) for p in pats]] + (["--logs", logs] if logs else [])
+                + (["--before", os.path.basename(log)] if blind else []))
     if name == "vision_replay":
         cmd = py + [os.path.join("tools", "vision_replay.py"), log, *rob]
         for k in ("max_heading_error", "max_correction", "min_tags", "max_dist"):
@@ -128,17 +129,44 @@ def tool_command(name, args, log, robot=None):
     return None
 
 
-def run_tool(name, args, log, robot=None, findings=True):
+def run_tool(name, args, log, robot=None, findings=True, blind=False):
     if name == "read_findings":
         if not findings:
             return "read_findings is turned off for this run."
         with open(os.path.join(REPO, "history", "findings.md"), encoding="utf-8") as f:
             return f.read()
-    cmd = tool_command(name, args, log, robot)
+    cmd = tool_command(name, args, log, robot, blind)
     if cmd is None:
         return f"Unknown tool {name!r}. Tools: run_report, history, vision_replay, read_findings."
     p = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, timeout=300)
-    return ((p.stdout + p.stderr) or "(no output)")[:12000]
+    out = (p.stdout + p.stderr) or "(no output)"
+    return (blind_text(out) if blind else out)[:12000]
+
+
+# --blind: test the model on an old log as if it were new. Hide what was learned at the event: the
+# report's "(q8 at mttd: ...)" notes, the event examples and today's settings in the prompt, and
+# (in tool_command) every recorded log from after this one.
+_BLIND_TEXT = [
+    (r"\s*\((?:[qp]\d+ at )?mttd\b[^()]*\)", ""),        # (q8 at mttd: ...), (mttd: ...), (mttd practice: ...)
+    (r";\s*at mttd[^.]*", ""),                            # "...; at mttd it was a config read ..."
+    (r"\s*\(added \d\d-\d\d\)", ""),                     # (added 11-07)
+    (r";\s*before it, they caused[^.]*", ""),
+]
+_BLIND_PROMPT = [
+    (r"^\| Regular comms drops on the field.*\n", ""),      # a row that only records one match
+    (r"\s*\((?:learned at )?mttd\b[^()]*\)", ""),
+    (r"\s*\([qp]\d+:[^()]*\)", ""),                       # (q8: CAN 5 coming back online)
+    (r";\s*several [qp]\d+ jumps were[^.]*", ""),
+    (r"\s*\(added \d\d-\d\d\)", ""),
+    (r"\s*\(drive supply \d+ A[^()]*\)", ""),              # today's limits, set after the event
+    (r"\s*\(0\.75 s minimum burst\)", ""),
+]
+
+
+def blind_text(text, rules=_BLIND_TEXT):
+    for pattern, new in rules:
+        text = re.sub(pattern, new, text, flags=re.M)
+    return text
 
 
 _TEXT_CALL = re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>|^\s*(\{.*\})\s*$", re.S)
@@ -171,9 +199,14 @@ def post(url, key, body, timeout=1200):
 
 
 def ask(log, question, model, url, key, robot=None, findings=True, think=False, max_tools=MAX_TOOL_CALLS,
-        say=lambda s: None, send=post):
+        say=lambda s: None, send=post, blind=False):
     """Run the tool loop and return (answer, steps). say() gets one line per step."""
     system = build_prompt(robot_2027=bool(robot and "2027" in robot))
+    if blind:
+        findings = False
+        system = blind_text(system, _BLIND_PROMPT) + (
+            "\n\nhistory only has matches recorded BEFORE this log. This log itself is not in it: its "
+            "numbers are in run_report.")
     if not findings:
         system = re.sub(r"^3\. Call read_findings.*\n", "", system, flags=re.M)
     msgs = [{"role": "system", "content": system},
@@ -205,7 +238,7 @@ def ask(log, question, model, url, key, robot=None, findings=True, think=False, 
                 args = {}
             say(f"  -> {c['function']['name']} {json.dumps(args) if args else ''}".rstrip())
             msgs.append({"role": "tool", "tool_call_id": c.get("id", ""),
-                         "content": run_tool(c["function"]["name"], args, log, robot, findings)})
+                         "content": run_tool(c["function"]["name"], args, log, robot, findings, blind)})
             used += 1
 
 
@@ -218,6 +251,8 @@ def main(argv=None):
     ap.add_argument("--url", default=os.environ.get("LOCAL_AI_URL", DEFAULT_URL))
     ap.add_argument("--robot", help="robot description to pass to the scripts (default: picked from the log)")
     ap.add_argument("--no-findings", action="store_true", help="do not let the model read history/findings.md")
+    ap.add_argument("--blind", action="store_true",
+                    help="treat an old log as new: no findings.md, no event notes, only earlier logs in history")
     ap.add_argument("--think", action="store_true", help="let a thinking model think (much slower)")
     ap.add_argument("--max-tools", type=int, default=MAX_TOOL_CALLS)
     a = ap.parse_args(argv)
@@ -227,7 +262,7 @@ def main(argv=None):
     t0 = time.time()
     try:
         answer, steps = ask(log, a.question, a.model, a.url, key, a.robot, not a.no_findings, a.think,
-                            a.max_tools, say=lambda s: print(s, file=sys.stderr, flush=True))
+                            a.max_tools, say=lambda s: print(s, file=sys.stderr, flush=True), blind=a.blind)
     except urllib.error.HTTPError as e:
         hint = {401: "the server wants an API key: set LOCAL_AI_API_KEY",
                 404: f"the server does not know model {a.model!r}: check --model against its model list"}
