@@ -53,7 +53,14 @@ def check(ctx):
                   "battery was fine, suspect the radio: its power, the radio-to-roboRIO ethernet, or impact. "
                   "The DS log viewer shows whether the radio or only the roboRIO disappeared.")
     if count > 5:
-        r.problem(f"{count} comms drops. At mttd, 86 regular drops (~6 s apart) were bad ethernet cables.")
+        fms = any(v for _, v in log.series("/DriverStation/FMSAttached").changes())
+        if fms:
+            r.problem(f"{count} comms drops on the field (no tether cable): suspect the radio's power and "
+                      f"mount, and the radio-to-roboRIO ethernet. (q57 at mttd: 22 drops ~6 s apart, cause "
+                      f"not found.)")
+        else:
+            r.problem(f"{count} comms drops. Check the tether and robot ethernet cables. (mttd practice: 86 "
+                      f"regular drops ~6 s apart were bad ethernet cables.)")
     elif count > 0:
         r.watch(f"{count} brief comms drop(s).")
     for cam in ctx.robot.get("vision", {}).get("cameras", []):

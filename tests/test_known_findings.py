@@ -178,10 +178,11 @@ class Q57BrownoutAndComms(unittest.TestCase):
         self.assertTrue(has_finding(f, "power", "problem", "roboRIO browned out"))
 
     def test_comms_drops(self):
-        # Between the 86-drop practice and the cable swap; q68 afterwards had 1.
+        # On the field, so a tether cable cannot be the cause and the report must not suggest one.
         m, f = report("_mttd_q57.wpilog")
         self.assertGreaterEqual(m["comms.comms_disables"], 15)
-        self.assertTrue(has_finding(f, "comms", "problem", "comms drops"))
+        self.assertTrue(has_finding(f, "comms", "problem", "comms drops on the field"))
+        self.assertFalse(has_finding(f, "comms", "problem", "tether and robot ethernet cables"))
 
 
 if __name__ == "__main__":

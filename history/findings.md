@@ -20,6 +20,16 @@ Template:
 - Changed: nothing (season over). Suggested: steer stator limit 40 -> 60 A; retune heading-hold.
 - Result: open.
 
+## 2026-11-08 mttd q57: brownout, 22 comms drops
+- Saw: roboRIO browned out, battery low 6.07 V with 26.5 s below 7 V; current normal for a qual (typical
+  106 A, others 92-104 A) but battery-path resistance 0.024 ohm, highest of the event (other quals
+  0.017-0.019; q19, the other near-brownout, 0.022). 22 comms drops ~5-6 s apart during the match,
+  the first ones at 10-11 V, so the battery did not cause them.
+- Cause: brownout unknown; resistance points at a weak battery or a battery-path connection (which
+  battery was used is not recorded). Comms drops unknown: on the field, so not a tether cable. They
+  have the same ~6 s rhythm as the 11-08 practice drops.
+- Changed: unknown. Result: q68 had 1 comms drop and stayed above 7.4 V.
+
 ## 2026-11-08 mttd practice: 86 comms drops; Limelight reboots
 - Saw: `CommsDisableCount` 86, ~6 s apart, battery ~11.6 V and ~20 A at each drop; Limelight NT
   client disconnected twice (~9 s) while the DS stayed connected.
@@ -68,3 +78,12 @@ Template:
 - Changed: CAN 5 connection repaired by the team before q19 (it stayed connected from then on); drive supply 20 -> 35 A; slip current 70 A; vision heading filter
   (15 deg); config check skips devices that are off the bus (it was stalling loops 50 ms).
 - Result: q19 typical speed 2.2 m/s (from 1.4); all devices connected; but battery sag (see q19).
+
+## 2026-11-01 to 2026-11-07 shop and mttd practice: three swerve modules drop off CAN together
+- Saw: FrontLeft, FrontRight and BackRight (all 9 devices) lost connection within 0.1 s of each other,
+  while BackLeft only blipped: Nov 1 (25 s, 22 s), Nov 7 02:42 (8 s), mttd p8 (129 s, most of the
+  match), Nov 7 15:48 practice (17 s). Battery 10-12 V at the drops; two happened while disabled.
+- Cause: a loose screw on the CAN bus after the BackLeft module (confirmed by the team).
+- Changed: tightened the screw.
+- Result: no group drops in any later log (q8 onward). The report now reports devices that drop
+  together as one finding.
