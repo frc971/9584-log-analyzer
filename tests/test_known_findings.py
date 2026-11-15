@@ -137,5 +137,52 @@ class Q68Defense(unittest.TestCase):
         self.assertFalse(has_finding(f, "drivetrain", "problem", "Drift is mostly one direction"))
 
 
+class SharedCanBreak(unittest.TestCase):
+    """p8 and the Nov 7 morning practice: FrontLeft, FrontRight and BackRight (9 devices) dropped at the same
+    moments while BackLeft stayed up. One shared break, so one finding, not nine 'check its connector'."""
+
+    def test_p8_one_group_finding(self):
+        m, f = report("_mttd_p8.wpilog")
+        self.assertEqual(m["devices.group_drop_devices"], 9)
+        self.assertTrue(has_finding(f, "devices", "problem", "9 devices on FrontLeft, FrontRight, BackRight"))
+        self.assertTrue(has_finding(f, "devices", "problem", "BackLeft stayed connected"))
+        self.assertFalse(has_finding(f, "devices", "problem", "FrontLeft drive (CAN 1) was not responding"))
+
+    def test_morning_practice(self):
+        m, _ = report("_15-48-33_mttd.wpilog")
+        self.assertEqual(m["devices.group_drop_devices"], 9)
+
+    def test_q8_dead_motor_is_not_a_group(self):
+        # One dead motor plus two short unrelated drops: still reported device by device.
+        m, f = report("_mttd_q8.wpilog")
+        self.assertNotIn("devices.group_drop_devices", m)
+        self.assertTrue(has_finding(f, "devices", "problem", "BackLeft drive (CAN 5) was not responding"))
+
+
+class Q28AutoAndOuttake(unittest.TestCase):
+    def test_auto_disabled_externally(self):
+        m, f = report("_mttd_q28.wpilog")
+        self.assertLess(m["timeline.auto_enabled_s"], 1)
+        self.assertTrue(has_finding(f, "timeline", "problem", "Auto was disabled"))
+
+    def test_outtake_too_short(self):
+        # Before the 0.75 s minimum burst (robot code a735091, after q51).
+        _, f = report("_mttd_q28.wpilog")
+        self.assertTrue(has_finding(f, "intake", "watch", "Outtake presses are too short"))
+
+
+class Q57BrownoutAndComms(unittest.TestCase):
+    def test_brownout(self):
+        m, f = report("_mttd_q57.wpilog")
+        self.assertLess(m["power.battery_min_v"], 6.5)
+        self.assertTrue(has_finding(f, "power", "problem", "roboRIO browned out"))
+
+    def test_comms_drops(self):
+        # Between the 86-drop practice and the cable swap; q68 afterwards had 1.
+        m, f = report("_mttd_q57.wpilog")
+        self.assertGreaterEqual(m["comms.comms_disables"], 15)
+        self.assertTrue(has_finding(f, "comms", "problem", "comms drops"))
+
+
 if __name__ == "__main__":
     unittest.main()

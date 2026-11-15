@@ -89,6 +89,7 @@ auto/teleop split and sampling helpers, build a `checks.common.Context(log, robo
 | What the log shows | Likely cause | Check on the robot |
 |---|---|---|
 | One device `Connected` false for long stretches, others fine; maybe "failed config" at boot | That device's CAN connector/splice or power | Its CAN wires, power leads, breaker |
+| Several devices on different modules lose connection at the same instant (report: "N devices ... lost connection at the same moments") | One shared break: a CAN splice/connector between modules, their power feed, or (if every device) the CANivore and its USB cable | Do not check each device: trace the wiring they share and the ones that stayed up do not |
 | One module's speed/target far below the others | Weak, binding, or dead drive motor | Spin the wheel by hand; check that motor |
 | All drive motors on their supply limit most of the time, robot slow at full stick | Current limit too low | Raise the limit; watch battery minimum |
 | Battery sags far more than current explains; resistance fit > 0.025 ohm and rising | Weak battery or loose/hot connection | Battery tester; main breaker, leads, lugs, connector |
