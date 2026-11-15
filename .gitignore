@@ -5,3 +5,4 @@ __pycache__/
 .env
 .DS_Store
 .claude/settings.local.json
+LOCAL_AI.md

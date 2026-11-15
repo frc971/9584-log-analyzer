@@ -33,9 +33,11 @@ Template:
 ## 2026-11-08 mttd practice: 86 comms drops; Limelight reboots
 - Saw: `CommsDisableCount` 86, ~6 s apart, battery ~11.6 V and ~20 A at each drop; Limelight NT
   client disconnected twice (~9 s) while the DS stayed connected.
-- Cause: bad ethernet cables (confirmed by the team).
-- Changed: cables replaced.
-- Result: q68 had 1 brief drop.
+- Cause: broken tether ethernet cables, between the pit laptop and the robot (confirmed: people
+  were holding the cables to keep them connected).
+- Changed: used the one cable that still worked (a short one) for the rest of the event. No cable
+  inside the robot was changed.
+- Result: no more tether drops reported; q68 (on the field) had 1 brief drop.
 
 ## 2026-11-08 mttd q51 and blocks test: FrontLeft CANcoder magnet
 - Saw: FrontLeft `Encoder/MagnetHealth` orange 0 s (morning) -> 16 s (blocks) -> 111 s (q51),
@@ -63,7 +65,8 @@ Template:
 ## 2026-11-07 mttd q38: 17 s connection loss at end of match
 - Saw: DS lost at 17 s left for ~20 s; robot code kept running; battery ~9 V; Limelight stayed
   connected to the roboRIO; robot was pushing (100-120 A) at the time.
-- Cause: suspected radio after impact (power/ethernet). Later cables found bad (see 11-08 entry).
+- Cause: suspected radio after impact (power/ethernet). Not the 11-08 bad cables: those were
+  tether cables, and on the field there is no tether.
 
 ## 2026-11-07 mttd q19 / practice: battery sag to 6.05 V
 - Saw: voltage collapsed late in teleop at constant current; resistance fit rose 0.014 -> 0.035 ohm

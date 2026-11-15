@@ -30,7 +30,7 @@ first time you use them, and always say what to physically check on the robot.
 | `tools/match_report.py` | One-page report. `--record` saves metrics, `--only drivetrain,vision` runs some checks, `--json` for machine-readable output |
 | `tools/history.py` | Compare metrics across logs from `history/metrics.csv` |
 | `analyze.py`, `Analyze latest log.cmd/.command` | Short commands for students working without AI (newest log by default). They only call the scripts above: agents should call those scripts directly |
-| `tools/local_ai.py` | Runs a local model with a short prompt cut from this file (see LOCAL_AI.md). Not for you: you have your own tools |
+| `tools/local_ai.py` | Runs a local model with a short prompt cut from this file (`python analyze.py ask`). Not for you: you have your own tools |
 | `tools/vision_replay.py` | Test vision filter rules against a recorded log |
 | `tools/wpilog.py` | Log reader (no dependencies). Use it for any custom digging, see below |
 | `tools/checks/*.py` | The individual checks. Each has a docstring explaining the method |
@@ -100,7 +100,8 @@ auto/teleop split and sampling helpers, build a `checks.common.Context(log, robo
 | Unwanted rotation split both ways; rear modules lag most | Steering lag + contact, not one module | Steering limit, heading-hold tuning, driver correction |
 | Unwanted rotation mostly ONE way | One module's offset, magnet, or weakness | Straighten wheels, read `MeasuredAngleDegrees` (should be ~0); recalibrate |
 | Heading-hold turns the robot opposite its correction > 30% | Wheels not at target yet / being pushed | Steering current limit, heading PID |
-| Comms drops every few seconds with low current and good battery | Bad ethernet cables (or laptop Wi-Fi when untethered) | Replace/reseat cables, tether in the pit |
+| Comms drops every few seconds with low current and good battery, while tethered | Bad tether cable (mttd: broken tether cables) or laptop Wi-Fi when untethered | Swap the tether cable; tether in the pit |
+| Regular comms drops on the field (no tether) | Unknown at mttd (q57: 22 drops ~6 s apart) | Radio power and mount, radio-to-roboRIO ethernet |
 | DS lost for ~20 s, robot code kept running, Limelight stayed connected | Radio link/power, often after impact | DS log viewer, radio power and cables |
 | Limelight NT client disconnects while DS stays connected | Camera rebooting / its cable | Limelight power and ethernet |
 | Auto disabled after a few seconds while `MatchTime` keeps counting | Disabled externally (A-stop, field, drive team) | Ask the drive team |

@@ -114,12 +114,13 @@ class Q51Magnet(unittest.TestCase):
 
 
 class PracticeCables(unittest.TestCase):
-    """11-08 practice: bad ethernet cables (86 drops) and the Limelight rebooting; outtake burst deployed."""
+    """11-08 practice: broken tether cables (86 drops) and the Limelight rebooting; outtake burst deployed."""
 
     def test_comms_drops(self):
         m, f = report("_mttd_p60636.wpilog")
         self.assertGreater(m["comms.comms_disables"], 50)
         self.assertGreaterEqual(m["comms.nt_drops.limelight-shooter"], 2)
+        self.assertTrue(has_finding(f, "comms", "problem", "try another tether cable"))
 
     def test_outtake_burst(self):
         m, _ = report("_mttd_p60636.wpilog")
@@ -182,7 +183,7 @@ class Q57BrownoutAndComms(unittest.TestCase):
         m, f = report("_mttd_q57.wpilog")
         self.assertGreaterEqual(m["comms.comms_disables"], 15)
         self.assertTrue(has_finding(f, "comms", "problem", "comms drops on the field"))
-        self.assertFalse(has_finding(f, "comms", "problem", "tether and robot ethernet cables"))
+        self.assertFalse(has_finding(f, "comms", "problem", "try another tether cable"))
 
 
 if __name__ == "__main__":

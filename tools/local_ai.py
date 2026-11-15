@@ -1,4 +1,4 @@
-"""Ask a LOCAL AI model about one log: no internet, no account. See LOCAL_AI.md for the setup.
+"""Ask a LOCAL AI model about one log: no internet, no account.
 
     python tools/local_ai.py logs/<file>.wpilog "Why did the robot feel slow?"
     python analyze.py ask q57 "Why did it brown out?"      (same thing, newest log if no selector)
@@ -211,7 +211,7 @@ def ask(log, question, model, url, key, robot=None, findings=True, think=False, 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
-                                 formatter_class=argparse.RawDescriptionHelpFormatter, epilog="See LOCAL_AI.md.")
+                                 formatter_class=argparse.RawDescriptionHelpFormatter, )
     ap.add_argument("log", help=".wpilog file")
     ap.add_argument("question", nargs="?", default=DEFAULT_QUESTION)
     ap.add_argument("--model", default=os.environ.get("LOCAL_AI_MODEL", DEFAULT_MODEL))
@@ -229,12 +229,12 @@ def main(argv=None):
         answer, steps = ask(log, a.question, a.model, a.url, key, a.robot, not a.no_findings, a.think,
                             a.max_tools, say=lambda s: print(s, file=sys.stderr, flush=True))
     except urllib.error.HTTPError as e:
-        hint = {401: "the server wants an API key: set LOCAL_AI_API_KEY (see LOCAL_AI.md)",
+        hint = {401: "the server wants an API key: set LOCAL_AI_API_KEY",
                 404: f"the server does not know model {a.model!r}: check --model against its model list"}
         print(f"Model server said HTTP {e.code}: {hint.get(e.code, e.read()[:300])}", file=sys.stderr)
         return 1
     except urllib.error.URLError as e:
-        print(f"Could not reach a model server at {a.url} ({e.reason}). Is it running? See LOCAL_AI.md.",
+        print(f"Could not reach a model server at {a.url} ({e.reason}). Is it running?",
               file=sys.stderr)
         return 1
     print(f"({len(steps)} model calls, {sum(len(s['tools']) for s in steps)} tool calls, "

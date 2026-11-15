@@ -59,8 +59,8 @@ def check(ctx):
                       f"mount, and the radio-to-roboRIO ethernet. (q57 at mttd: 22 drops ~6 s apart, cause "
                       f"not found.)")
         else:
-            r.problem(f"{count} comms drops. Check the tether and robot ethernet cables. (mttd practice: 86 "
-                      f"regular drops ~6 s apart were bad ethernet cables.)")
+            r.problem(f"{count} comms drops. If tethered, try another tether cable first. (mttd practice: "
+                      f"86 drops ~6 s apart were broken tether cables.)")
     elif count > 0:
         r.watch(f"{count} brief comms drop(s).")
     for cam in ctx.robot.get("vision", {}).get("cameras", []):

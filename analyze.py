@@ -9,7 +9,7 @@
     python analyze.py list             the logs in logs/, newest first
     python analyze.py fetch            copy the newest log off the robot into logs/
     python analyze.py fetch --as q68 --report   ...add "_q68" to its name, then run the full report
-    python analyze.py ask q57 "Why did it brown out?"   ask a local AI model (no internet; LOCAL_AI.md)
+    python analyze.py ask q57 "Why did it brown out?"   ask a local AI model (mentor's Mac only)
 
 Getting the log off the robot (fetch): plug a laptop into the robot with an Ethernet cable (fastest;
 use this in the pits) or a USB cable, or connect to the robot's Wi-Fi in the shop. Wi-Fi to the
